@@ -1,37 +1,38 @@
-
-import './App.css'
-import { createAccount } from './Appwrite/auth.js'
+import { useState , useEffect} from "react"
+import { useDispatch } from "react-redux"
+import {login as userLogin, get_current_user , logout as userLogout  } from "./Appwrite";
+import { Login , Logout } from "./store/authSlice";
+import { Footer, Header } from "./components";
 function App() {
-  const handleregister = async (e) => {
-    e.preventDefault(); 
-    const email = e.target.email.value;
-    const password = e.target.password.value;
-    const name = e.target.name.value;
-    const response = await createAccount({ email, password, name });
-    console.log(response);
-  }
+const [Loading, setLoading] = useState(false)
+const dispatch = useDispatch(); 
+
+useEffect(() => { 
+    setLoading(true);
+    get_current_user()
+        .then((res) => {
+            if (res) {
+                dispatch(Login(res)); 
+                console.log(res);
+            } else { 
+                dispatch(Logout());
+                console.log("user not logged in");
+            }
+        })
+        .catch((err) => {
+            console.log(err);
+        })
+        .finally(() => {
+            setLoading(false);
+        });
+}, []);
   return (
     <>
-      <h1 className='text-3xl text-center'>HI</h1>
-      <form onSubmit={handleregister}>
-        <label>
-          Email:
-          <input type="email" name="email" required />
-        </label>
-        <br />
-        <label>
-          Password:
-          <input type="password" name="password" required />
-        </label>
-        <br />
-        <label>
-          Name:
-          <input type="text" name="name" required />
-        </label>
-        <br />
-        <button type="submit">Register</button>
-      </form>
-    </>
+    <Header /> 
+    {Loading && <h1>Loading...</h1>}
+    {!Loading && <h1>App</h1>}
+<Footer />
+</>
   )
 }
 
