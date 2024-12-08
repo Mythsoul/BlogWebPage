@@ -1,82 +1,80 @@
-import React, {useState} from 'react'
-import {Link, useNavigate} from 'react-router-dom'
-import { Login as authLogin } from '../store/authSlice'
-import {Button, Input, Logo} from "./index"
-import {useDispatch} from "react-redux"
-import {useForm} from "react-hook-form"
-import { login as Userlogin , get_current_user as getCurrentUser } from '../Appwrite'
-function Login() {
-    const navigate = useNavigate()
-    const dispatch = useDispatch()
-    const {register, handleSubmit} = useForm()
-    const [error, setError] = useState("")
+import { useForm } from 'react-hook-form';
 
-    const login = async(data) => {
-        setError("")
-        try {
-            const session = await Userlogin(data)
-            if (session) {
-                const userData = await getCurrentUser()
-                if(userData) dispatch(authLogin(userData));
-                navigate("/")
-            }
-        } catch (error) {
-            setError(error.message)
-        }
-    }
+function Login() {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm();
+
+  const onSubmit = (data) => console.log(data);
+
+  console.log(watch("username")); // Watch input value by passing the name of it
 
   return (
-    <div
-    className='flex items-center justify-center w-full'
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
     >
-        <div className={`mx-auto w-full max-w-lg bg-gray-100 rounded-xl p-10 border border-black/10`}>
-        <div className="mb-2 flex justify-center">
-                    <span className="inline-block w-full max-w-[100px]">
-                        <Logo width="100%" />
-                    </span>
-        </div>
-        <h2 className="text-center text-2xl font-bold leading-tight">Sign in to your account</h2>
-        <p className="mt-2 text-center text-base text-black/60">
-                    Don&apos;t have any account?&nbsp;
-                    <Link
-                        to="/signup"
-                        className="font-medium text-primary transition-all duration-200 hover:underline"
-                    >
-                        Sign Up
-                    </Link>
-        </p>
-        {error && <p className="text-red-600 mt-8 text-center">{error}</p>}
-        <form onSubmit={handleSubmit(login)} className='mt-8'>
-            <div className='space-y-5'>
-                <Input
-                label="Email: "
-                placeholder="Enter your email"
-                type="email"
-                {...register("email", {
-                    required: true,
-                    validate: {
-                        matchPatern: (value) => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value) ||
-                        "Email address must be a valid address",
-                    }
-                })}
-                />
-                <Input
-                label="Password: "
-                type="password"
-                placeholder="Enter your password"
-                {...register("password", {
-                    required: true,
-                })}
-                />
-                <Button
-                type="submit"
-                className="w-full"
-                >Sign in</Button>
-            </div>
-        </form>
-        </div>
-    </div>
-  )
+      {/* Username Field */}
+      <div className="mb-4">
+        <label
+          className="block text-gray-700 text-sm font-bold mb-2"
+          htmlFor="username"
+        >
+          Username
+        </label>
+        <input
+          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          {...register("username", {
+            required: "Username is required.",
+            minLength: {
+              value: 4,
+              message: "Username must be at least 4 characters long.",
+            },
+            maxLength: {
+              value: 30,
+              message: "Username cannot exceed 30 characters.",
+            },
+          })}
+        />
+        {errors.username && (
+          <p className="text-red-500 text-xs italic">{errors.username.message}</p>
+        )}
+      </div>
+
+      {/* Password Field */}
+      <div className="mb-6">
+        <label
+          className="block text-gray-700 text-sm font-bold mb-2"
+          htmlFor="password"
+        >
+          Password
+        </label>
+        <input
+          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+          type="password"
+          {...register("password", {
+            required: "Password is required.",
+          })}
+        />
+        {errors.password && (
+          <p className="text-red-500 text-xs italic">{errors.password.message}</p>
+        )}
+      </div>
+
+      {/* Submit Button */}
+      <div className="flex items-center justify-between">
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          type="submit"
+        >
+          Sign In
+        </button>
+      </div>
+    </form>
+  );
 }
 
-export default Login
+export default Login;

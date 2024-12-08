@@ -1,52 +1,32 @@
-import conf from "../conf/conf";
-import { Client, Account, ID } from "appwrite";
+import {account , ID} from "./Appwrite";
 
-const client = new Client()
-    .setEndpoint(conf.appwriteUrl)
-    .setProject(conf.appwriteProjectId);
 
-const account = new Account(client);
-
-export async function createAccount({ email, password, name }) {
-    try {
-        const response = await account.create(ID.unique(), email, password, name);
-        if (response) {
-            return login({ email, password })
-        }
-        return response;
-    } catch (err) {
-        console.error(err);
-        throw err;
+export async function createAccount(email , password , name){ 
+    try{
+const userAccount =  await account.create(ID.unique() , email , password , name);
+if(userAccount) { 
+    LoginUser(email , password); 
+}
+    }catch(err){ 
+        console.log("Error while creating Account " , err)
     }
 }
 
-export async function login({ email, password }) {
-    try {
-        const response = await account.createEmailPasswordSession(email, password);
-        return response;
-    } catch (err) {
-        console.log(err);
-        throw err;
-    }
-}
 
-export async function get_current_user() {
-    try {
-        const response = await account.get();
-        return response;
-    }
-    catch (err) {
-        console.log("Error while Getting user Account ", err);
-    }
-    return null;
-}
-
-export async function logout() {
+export async function LoginUser(email , password){ 
     try{ 
-        const response = await account.deleteSessions();
-        return response;
-    }
-    catch (err) {
-        console.log("Error while Deleting user Account ", err);
+     const User = await account.createEmailPasswordSession(email , password); 
+        return User; 
+    }catch(err){ 
+        console.log(err)
     }
 }
+
+export async function logoutUser(){ 
+    try{ 
+        await account.deleteSessions("all"); 
+    }catch(err){ 
+        console.log(err)
+    }
+}   
+

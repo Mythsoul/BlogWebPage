@@ -1,27 +1,26 @@
-import {  NavLink } from "react-router-dom"
-import LogoutBtn from "./LogoutBtn"
-import { get_current_user } from "../../Appwrite"
-import { useSelector } from "react-redux"
+import { useContext } from "react"
+import Button from "../Button"
 function Header() {
-  const authStatus = useSelector((state) => state.auth.status);
-  console.log(authStatus);
-  return (
-    <header className="bg-gray-800 text-white shadow-md py-4 px-6 flex justify-between items-center">
-      <div className="font-bold text-2xl">Blog</div>
-      <nav className="flex space-x-4">
-        <NavLink exact activeClassName="bg-gray-700" to="/" className="hover:bg-gray-700 px-3 py-2 rounded-md transition duration-300">Home</NavLink>
-        <NavLink activeClassName="bg-gray-700" to="/about" className="hover:bg-gray-700 px-3 py-2 rounded-md transition duration-300">About</NavLink>
-      </nav>
-      <div className="flex space-x-4">
-      {!authStatus &&  <>
-      <NavLink to="/login" activeClassName="bg-blue-700" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition duration-300">Login</NavLink>
-      <NavLink to="/signup" activeClassName="bg-green-700" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition duration-300">Sign Up</NavLink>
-      </>}
-      {authStatus && <LogoutBtn />}
-      </div>
-    </header>
-  )
+  const authstatus = useContext((state)=>(state.auth.status)); 
 
+  return (
+    <nav className="bg-gray-800 p-4 flex justify-between shadow-md">
+      <div className="flex items-center space-x-4">
+        <div className="bg-gray-900 p-2 rounded-lg">
+          <span className="text-white font-bold text-2xl">Logo</span>
+        </div>
+        <ul className="flex space-x-4 text-white">
+          <li><a href="#" className="hover:underline">Home</a></li>
+          <li><a href="#" className="hover:underline">About</a></li>
+          <li><a href="#" className="hover:underline">Contact</a></li>
+        </ul>
+      </div>
+      <div className="flex items-center space-x-4">
+        <Button name="Signin" />
+        <Button name="Signup" />
+      </div>
+    </nav>
+  )
 }
 
 export default Header

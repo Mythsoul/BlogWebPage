@@ -1,39 +1,21 @@
-import { useState , useEffect} from "react"
-import { useDispatch } from "react-redux"
-import {login as userLogin, get_current_user , logout as userLogout  } from "./Appwrite";
-import { Login , Logout } from "./store/authSlice";
-import { Footer, Header } from "./components";
+import React from 'react'
+import { createAccount } from './Appwrite/auth';
+import Header from './components/header/Header';
+import Footer from './components/Footer/Footer';
+import { logout } from './store/authSlice';
+import Login from './Components/Login';
 function App() {
-const [Loading, setLoading] = useState(false)
-const dispatch = useDispatch(); 
-
-useEffect(() => { 
-    setLoading(true);
-    get_current_user()
-        .then((res) => {
-            if (res) {
-                dispatch(Login(res)); 
-                console.log(res);
-            } else { 
-                dispatch(Logout());
-                console.log("user not logged in");
-            }
-        })
-        .catch((err) => {
-            console.log(err);
-        })
-        .finally(() => {
-            setLoading(false);
-        });
-}, []);
+  
   return (
-    <>
-    <Header /> 
-    {Loading && <h1>Loading...</h1>}
-    {!Loading && <h1>App</h1>}
-<Footer />
-</>
-  )
+    <> 
+  <Header /> 
+  <main> 
+    <button onClick={()=>{logout()}}>Click Here to Logout</button>
+  </main>
+  <Login />
+  <Footer /> 
+     
+ </> )
 }
 
-export default App
+export default App; 

@@ -1,10 +1,11 @@
 
 function Footer() {
-return(
-    <>
-    <footer className="bg-gray-800 text-white p-4 text-center fixed bottom-0 w-full">
-        <div>Copyright   2022, All rights reserved.</div>
+  return (
+ 
+    <footer className="bg-gray-800 p-4 text-white text-center fixed bottom-0 w-full">
+      <p>Copyright  2022 - All Rights Reserved</p>
     </footer>
-  </>)
+  )
 }
+
 export default Footer
