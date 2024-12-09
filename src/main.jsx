@@ -5,21 +5,20 @@ import { Provider } from 'react-redux';
 import Store from "./store/store.js";
 import { createBrowserRouter , RouterProvider } from 'react-router-dom';
 import './index.css'
-import Login from './Components/Login.jsx';
-import Signup from './Components/Signup.jsx';
-
+import LoginPage from './Pages/LoginPage.jsx';
+import SignupPage from './Pages/SignupPage.jsx';
 const router = createBrowserRouter([
   { 
     path : "/" ,
     element : <App />
   } , { 
     path: "/login" , 
-    element : <Login /> 
+    element : <LoginPage /> 
 
   } , 
   { 
     path : "/signup", 
-    element : <Signup /> 
+    element : <SignupPage /> 
   }
 ])
 
