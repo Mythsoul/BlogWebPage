@@ -1,6 +1,14 @@
 import {account , ID} from "./Appwrite";
 
 
+export async function IsuserLoggedIn(){
+    try{ 
+        const user = await account.get(); 
+        return user;
+    }catch(err){ 
+        console.log(err); 
+    }
+}
 export async function createAccount(email , password , name){ 
     try{
 const userAccount =  await account.create(ID.unique() , email , password , name);
@@ -24,7 +32,7 @@ export async function LoginUser(email , password){
 
 export async function logoutUser(){ 
     try{ 
-        await account.deleteSessions("all"); 
+        await account.deleteSessions(); 
     }catch(err){ 
         console.log(err)
     }

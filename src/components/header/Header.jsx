@@ -1,7 +1,9 @@
-import { useContext } from "react"
+import { useSelector} from "react-redux"
 import Button from "../Button"
+
 function Header() {
-  const authstatus = useContext((state)=>(state.auth.status)); 
+const authStatus = useSelector((state) => state.auth.status);
+  console.log(authStatus)
 
   return (
     <nav className="bg-gray-800 p-4 flex justify-between shadow-md">
@@ -16,8 +18,11 @@ function Header() {
         </ul>
       </div>
       <div className="flex items-center space-x-4">
+      {!authStatus && <>
         <Button name="Signin" />
-        <Button name="Signup" />
+        <Button name="Signup" /></>
+        }
+      {authStatus && <Button name="Logout" />}
       </div>
     </nav>
   )
