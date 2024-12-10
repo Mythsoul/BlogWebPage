@@ -5,6 +5,7 @@ import Footer from './components/Footer/Footer';
 import { useDispatch } from 'react-redux';
 import { login, logout } from './store/Authslice';
 import { Routes , Route } from 'react-router-dom';
+import {createPost} from './Appwrite/config';
 
 function App() {
  const dispatch = useDispatch(); 
@@ -31,6 +32,7 @@ function App() {
   <Header /> 
   <main> 
     <button onClick={()=>{dispatch(logout()) , logoutUser()}}>Click Here to Logout</button>
+    <button onClick={()=>{createPost("title" , "ehehe" , "eeu8484948" , "published" , "23994894")}}>Add Post </button>
   </main>
  
   <Footer /> 
