@@ -1,43 +1,38 @@
-import React, { useEffect } from 'react'
-import {  IsuserLoggedIn, logoutUser } from './Appwrite/auth';
-import Header from './components/header/Header';
-import Footer from './components/Footer/Footer';
-import { useDispatch } from 'react-redux';
-import { login, logout } from './store/Authslice';
-import { Routes , Route } from 'react-router-dom';
-import {createPost} from './Appwrite/config';
+import React, { useState, useEffect } from 'react'
+import { useDispatch } from 'react-redux'
+import './App.css'
+import authService from "./appwrite/auth"
+import {login, logout} from "./store/authSlice"
+import { Footer, Header } from './components'
+import { Outlet } from 'react-router-dom'
 
 function App() {
- const dispatch = useDispatch(); 
- 
-  useEffect(()=>{ 
-     IsuserLoggedIn()
-     .then((res)=>{
-      if(res){
-        dispatch(login(res))}
-        else{
-          dispatch(logout());
-        }; 
-     }).catch((err)=>{
-       console.log(err);
-     }); 
-    
-   
- } , []);
- 
- 
-  return (
+  const [loading, setLoading] = useState(true)
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    authService.getCurrentUser()
+    .then((userData) => {
+      if (userData) {
+        dispatch(login({userData}))
+      } else {
+        dispatch(logout())
+      }
+    })
+    .finally(() => setLoading(false))
+  }, [])
   
-    <> 
-  <Header /> 
-  <main> 
-    <button onClick={()=>{dispatch(logout()) , logoutUser()}}>Click Here to Logout</button>
-    <button onClick={()=>{createPost("title" , "ehehe" , "eeu8484948" , "published" , "23994894")}}>Add Post </button>
-  </main>
- 
-  <Footer /> 
-     
- </> )
+  return !loading ? (
+    <div className='min-h-screen flex flex-wrap content-between bg-gray-400'>
+      <div className='w-full block'>
+        <Header />
+        <main>
+        TODO:  <Outlet />
+        </main>
+        <Footer />
+      </div>
+    </div>
+  ) : null
 }
 
-export default App; 
+export default App

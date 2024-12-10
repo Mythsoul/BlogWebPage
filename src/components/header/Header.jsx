@@ -1,66 +1,73 @@
-import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
-import { logoutUser } from '../../Appwrite/auth';
-import { logout } from '../../store/Authslice';
+import React from 'react'
+import {Container, Logo, LogoutBtn} from '../index'
+import { Link } from 'react-router-dom'
+import {useSelector} from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 function Header() {
-  const authStatus = useSelector((state) => state.auth.status);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const authStatus = useSelector((state) => state.auth.status)
+  const navigate = useNavigate()
 
-  const handleLogout = () => {
-    logoutUser();
-    dispatch(logout());
-    navigate('/');
-  };
+  const navItems = [
+    {
+      name: 'Home',
+      slug: "/",
+      active: true
+    }, 
+    {
+      name: "Login",
+      slug: "/login",
+      active: !authStatus,
+  },
+  {
+      name: "Signup",
+      slug: "/signup",
+      active: !authStatus,
+  },
+  {
+      name: "All Posts",
+      slug: "/all-posts",
+      active: authStatus,
+  },
+  {
+      name: "Add Post",
+      slug: "/add-post",
+      active: authStatus,
+  },
+  ]
+
 
   return (
-    <header className="bg-gray-800 p-4">
-      <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="text-white font-bold text-2xl">Logo</Link>
-        <nav>
-          <ul className="flex space-x-4">
-            <li>
-              <Link to="/" className="text-white hover:text-gray-300">Home</Link>
-            </li>
-            <li>
-              <Link to="/posts" className="text-white hover:text-gray-300">Posts</Link>
-            </li>
+    <header className='py-3 shadow bg-gray-500'>
+      <Container>
+        <nav className='flex'>
+          <div className='mr-4'>
+            <Link to='/'>
+              <Logo width='70px'   />
+
+              </Link>
+          </div>
+          <ul className='flex ml-auto'>
+            {navItems.map((item) => 
+            item.active ? (
+              <li key={item.name}>
+                <button
+                onClick={() => navigate(item.slug)}
+                className='inline-bock px-6 py-2 duration-200 hover:bg-blue-100 rounded-full'
+                >{item.name}</button>
+              </li>
+            ) : null
+            )}
             {authStatus && (
               <li>
-                <Link to="/create-post" className="text-white hover:text-gray-300">Create Post</Link>
-              </li>
-            )}
-            {!authStatus ? (
-              <>
-                <li>
-                  <Link to="/signup" className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded">
-                    Sign Up
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/login" className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded">
-                    Sign In
-                  </Link>
-                </li>
-              </>
-            ) : (
-              <li>
-                <button
-                  onClick={handleLogout}
-                  className="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded"
-                >
-                  Logout
-                </button>
+                <LogoutBtn />
               </li>
             )}
           </ul>
         </nav>
-      </div>
+        </Container>
     </header>
-  );
+  )
 }
 
-export default Header;
-
+export default Header
