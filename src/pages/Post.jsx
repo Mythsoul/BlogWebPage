@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import appwriteService from "../appwrite/config";
-import { Button, Container } from "../components";
-import parse from "html-react-parser";
 import { useSelector } from "react-redux";
+import parse from "html-react-parser";
+import { Edit, Trash2, ArrowLeft } from 'lucide-react';
 
 export default function Post() {
     const [post, setPost] = useState(null);
+    const [loading, setLoading] = useState(true);
     const { slug } = useParams();
     const navigate = useNavigate();
 
@@ -19,6 +20,7 @@ export default function Post() {
             appwriteService.getPost(slug).then((post) => {
                 if (post) setPost(post);
                 else navigate("/");
+                setLoading(false);
             });
         } else navigate("/");
     }, [slug, navigate]);
@@ -32,36 +34,64 @@ export default function Post() {
         });
     };
 
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500"></div>
+            </div>
+        );
+    }
+
     return post ? (
-        <div className="py-8">
-            <Container>
-                <div className="w-full flex justify-center mb-4 relative border rounded-xl p-2">
-                    <img
-                        src={appwriteService.getFilePreview(post.featuredImage)}
-                        alt={post.title}
-                        className="rounded-xl"
-                    />
+        <div className="py-8 bg-gray-100 min-h-screen">
+            <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+                <img
+                    src={appwriteService.getFilePreview(post.featuredImage)}
+                    alt={post.title}
+                    className="w-full h-64 object-cover"
+                />
+
+                <div className="p-8">
+                    <h1 className="text-3xl font-bold text-gray-800 mb-4">{post.title}</h1>
+                    
+                    <div className="flex items-center text-gray-600 mb-6">
+                        <span className="mr-4">By {post.author}</span>
+                        <span>{new Date(post.$createdAt).toLocaleDateString()}</span>
+                    </div>
 
                     {isAuthor && (
-                        <div className="absolute right-6 top-6">
-                            <Link to={`/edit-post/${post.$id}`}>
-                                <Button bgColor="bg-green-500" className="mr-3">
-                                    Edit
-                                </Button>
+                        <div className="flex space-x-4 mb-6">
+                            <Link 
+                                to={`/edit-post/${post.$id}`}
+                                className="flex items-center text-blue-600 hover:text-blue-800"
+                            >
+                                <Edit className="w-5 h-5 mr-1" />
+                                Edit
                             </Link>
-                            <Button bgColor="bg-red-500" onClick={deletePost}>
+                            <button 
+                                onClick={deletePost}
+                                className="flex items-center text-red-600 hover:text-red-800"
+                            >
+                                <Trash2 className="w-5 h-5 mr-1" />
                                 Delete
-                            </Button>
+                            </button>
                         </div>
                     )}
-                </div>
-                <div className="w-full mb-6">
-                    <h1 className="text-2xl font-bold">{post.title}</h1>
-                </div>
-                <div className="browser-css">
-                    {parse(post.content)}
+
+                    <div className="prose max-w-none">
+                        {parse(post.content)}
                     </div>
-            </Container>
+
+                    <Link 
+                        to="/"
+                        className="inline-flex items-center mt-8 text-indigo-600 hover:text-indigo-800"
+                    >
+                        <ArrowLeft className="w-5 h-5 mr-2" />
+                        Back to Home
+                    </Link>
+                </div>
+            </div>
         </div>
     ) : null;
 }
+

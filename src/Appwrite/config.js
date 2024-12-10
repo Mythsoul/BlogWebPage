@@ -21,7 +21,7 @@ export class Service{
                 conf.appwriteCollectionId,
                 slug,
                 {
-                    title,
+                title,
                     content,
                     featuredImage,
                     status,
