@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react'
 import appwriteService from "../appwrite/config"
 import { PostCard } from '../components'
 import { Loader } from 'lucide-react'
-import { CarouselDemo } from '../components/TestCard'
-import { Carousel } from '@/components/ui/carousel'
+
 function Home() {
     const [posts, setPosts] = useState([])
     const [loading, setLoading] = useState(true)
@@ -49,7 +48,7 @@ function Home() {
                         <PostCard key={post.$id} {...post} />
                     ))}
                 </div>
-<CarouselDemo /> 
+
             </div>
         </div>
     )

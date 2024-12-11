@@ -1,112 +1,154 @@
+"use client"
+
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import { login } from '../store/authSlice'
 import authService from '../appwrite/auth'
 import { Mail, Lock, User } from 'lucide-react'
-
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { useToast } from '@/hooks/use-toast'
 function Signup() {
     const navigate = useNavigate()
-    const [error, setError] = useState("")
     const dispatch = useDispatch()
-    const { register, handleSubmit } = useForm()
+    const { toast } = useToast()
+    const [isCreating, setIsCreating] = useState(false)
+    const form = useForm({
+        defaultValues: {
+            name: '',
+            email: '',
+            password: '',
+        },
+    })
 
-    const create = async (data) => {
-        setError("")
+    const onSubmit = async (data) => {
+        setIsCreating(true)
         try {
             const userData = await authService.createAccount(data)
             if (userData) {
-                const userData = await authService.getCurrentUser()
-                if (userData) dispatch(login(userData));
+                const currentUser = await authService.getCurrentUser()
+                if (currentUser) dispatch(login(currentUser))
                 navigate("/")
+                toast({
+                    title: "Account created",
+                    description: "You have successfully created your account.",
+                })
             }
         } catch (error) {
-            setError(error.message)
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error.message,
+            })
+        } finally {
+            setIsCreating(false)
         }
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
+        <div className="container mx-auto flex items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+            <Card className="w-full max-w-md">
+                <CardHeader>
+                    <CardTitle className="text-2xl font-bold text-center">Create your account</CardTitle>
+                    <CardDescription className="text-center">
                         Or{' '}
-                        <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+                        <Link to="/login" className="font-medium text-primary hover:underline">
                             sign in to your existing account
                         </Link>
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="name"
+                                rules={{ required: "Full name is required" }}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Full Name</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                                                <Input {...field} placeholder="Full Name" className="pl-10" />
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                rules={{
+                                    required: "Email is required",
+                                    pattern: {
+                                        value: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+                                        message: "Email address must be a valid address",
+                                    }
+                                }}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Email</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                                                <Input {...field} type="email" placeholder="Email address" className="pl-10" />
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="password"
+                                rules={{
+                                    required: "Password is required",
+                                    minLength: {
+                                        value: 8,
+                                        message: "Password must be at least 8 characters",
+                                    }
+                                }}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Password</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                                                <Input {...field} type="password" placeholder="Password" className="pl-10" />
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <Button type="submit" className="w-full" disabled={isCreating}>
+                                {isCreating ? "Creating Account..." : "Create Account"}
+                            </Button>
+                        </form>
+                    </Form>
+                </CardContent>
+                <CardFooter className="flex justify-center">
+                    <p className="text-sm text-muted-foreground">
+                        By creating an account, you agree to our{' '}
+                        <Link to="/terms" className="font-medium text-primary hover:underline">
+                            Terms of Service
+                        </Link>{' '}
+                        and{' '}
+                        <Link to="/privacy" className="font-medium text-primary hover:underline">
+                            Privacy Policy
+                        </Link>
                     </p>
-                </div>
-                {error && <p className="text-center text-red-600">{error}</p>}
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit(create)}>
-                    <div className="rounded-md shadow-sm -space-y-px">
-                        <div>
-                            <label htmlFor="name" className="sr-only">Full Name</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <User className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    id="name"
-                                    type="text"
-                                    {...register("name", { required: true })}
-                                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm pl-10"
-                                    placeholder="Full Name"
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label htmlFor="email-address" className="sr-only">Email address</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Mail className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    id="email-address"
-                                    type="email"
-                                    {...register("email", {
-                                        required: true,
-                                        validate: {
-                                            matchPattern: (value) => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value) ||
-                                                "Email address must be a valid address",
-                                        }
-                                    })}
-                                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm pl-10"
-                                    placeholder="Email address"
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label htmlFor="password" className="sr-only">Password</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    id="password"
-                                    type="password"
-                                    {...register("password", { required: true })}
-                                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm pl-10"
-                                    placeholder="Password"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <button
-                            type="submit"
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                            Create Account
-                        </button>
-                    </div>
-                </form>
-            </div>
+                </CardFooter>
+            </Card>
         </div>
     )
 }
 
 export default Signup
-

@@ -1,27 +1,33 @@
-import {useState }from 'react'
-import {useDispatch} from 'react-redux'
-import authService from '../../appwrite/auth'
-import {logout} from '../../store/authSlice'
+import React, { useState } from 'react'
+import { useDispatch } from 'react-redux'
+import authService from '@/appwrite/auth'
+import { logout } from '@/store/authSlice' 
 import { LogOut } from 'lucide-react'
-import React from 'react'
+import { Button } from '../ui/button'
+import { DropdownMenuItem } from "../ui/dropdown-menu"
+
 function LogoutBtn() {
-    const dispatch = useDispatch(); 
-    const [loggingout, setloggingout] = useState(false)
+    const dispatch = useDispatch()
+    const [loggingOut, setLoggingOut] = useState(false)
+
     const logoutHandler = () => {
-        setloggingout(true)
+        setLoggingOut(true)
         authService.logout().then(() => {
             dispatch(logout())
         })
-        .finally(() => setloggingout(false))
+        .finally(() => setLoggingOut(false))
     }
-  return (
-    <button disabled = {loggingout}
-    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-    onClick={logoutHandler}>
-    <LogOut className="w-4 h-4 mr-2" />    
-     {loggingout ? "Logging out..." : "Logout"}
-   </button>
-  )
+
+    return (
+        <DropdownMenuItem
+            disabled={loggingOut}
+            onClick={logoutHandler}
+        >
+            <LogOut className="w-4 h-4 mr-2" />
+            {loggingOut ? "Logging out..." : "Logout"}
+        </DropdownMenuItem>
+    )
 }
 
 export default LogoutBtn
+

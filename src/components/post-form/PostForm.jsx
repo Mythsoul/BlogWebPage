@@ -1,165 +1,242 @@
-import React, { useCallback } from "react";
-import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { X } from 'lucide-react';
-import appwriteService from "../../appwrite/config";
+import React, { useCallback, useState } from "react"
+import { useForm } from "react-hook-form"
+import { useNavigate } from "react-router-dom"
+import { useSelector } from "react-redux"
+import { X, Loader2 } from 'lucide-react'
+import { useEditor, EditorContent } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import appwriteService from '../../appwrite/config'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { useToast } from "@/hooks/use-toast"
 
 export default function PostForm({ post }) {
-    const { register, handleSubmit, watch, setValue, control, getValues } = useForm({
-        defaultValues: {
-            title: post?.title || "",
-            slug: post?.$id || "",
-            content: post?.content || "",
-            status: post?.status || "active",
-        },
-    });
+  const { toast } = useToast()
+  const navigate = useNavigate()
+  const userData = useSelector((state) => state.auth.userData)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const navigate = useNavigate();
-    const userData = useSelector((state) => state.auth.userData);
+  const form = useForm({
+    defaultValues: {
+      title: post?.title || "",
+      slug: post?.$id || "",
+      content: post?.content || "",
+      status: post?.status || "active",
+      image: null,
+    },
+  })
 
-    const submit = async (data) => {
-        if (post) {
-            const file = data.image[0] ? await appwriteService.uploadFile(data.image[0]) : null;
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: post?.content || "",
+    onUpdate: ({ editor }) => {
+      form.setValue('content', editor.getHTML())
+    },
+  })
 
-            if (file) {
-                appwriteService.deleteFile(post.featuredImage);
-            }
+  const slugTransform = useCallback((value) => {
+    if (value && typeof value === "string")
+      return value
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-zA-Z\d\s]+/g, "-")
+        .replace(/\s/g, "-")
 
-            const dbPost = await appwriteService.updatePost(post.$id, {
-                ...data,
-                featuredImage: file ? file.$id : undefined,
-            });
+    return ""
+  }, [])
 
-            if (dbPost) {
-                navigate(`/post/${dbPost.$id}`);
-            }
-        } else {
-            const file = await appwriteService.uploadFile(data.image[0]);
-
-            if (file) {
-                const fileId = file.$id;
-                data.featuredImage = fileId;
-                const dbPost = await appwriteService.createPost({ ...data, userId: userData.$id });
-
-                if (dbPost) {
-                    navigate(`/post/${dbPost.$id}`);
-                }
-            }
+  const onSubmit = async (data) => {
+    setIsSubmitting(true)
+    try {
+      let featuredImage = post?.featuredImage
+      if (data.image) {
+        if (post?.featuredImage) {
+          await appwriteService.deleteFile(post.featuredImage)
         }
-    };
+        const uploadedFile = await appwriteService.uploadFile(data.image)
+        featuredImage = uploadedFile.$id
+      }
 
-    const slugTransform = useCallback((value) => {
-        if (value && typeof value === "string")
-            return value
-                .trim()
-                .toLowerCase()
-                .replace(/[^a-zA-Z\d\s]+/g, "-")
-                .replace(/\s/g, "-");
+      const postData = {
+        ...data,
+        featuredImage,
+        userId: userData.$id,
+      }
 
-        return "";
-    }, []);
+      let dbPost
+      if (post) {
+        dbPost = await appwriteService.updatePost(post.$id, postData)
+      } else {
+        dbPost = await appwriteService.createPost(postData)
+      }
 
-    React.useEffect(() => {
-        const subscription = watch((value, { name }) => {
-            if (name === "title") {
-                setValue("slug", slugTransform(value.title), { shouldValidate: true });
-            }
-        });
+      if (dbPost) {
+        toast({
+          title: post ? "Post Updated" : "Post Created",
+          description: `Your post has been ${post ? "updated" : "created"} successfully.`,
+        })
+        navigate(`/post/${dbPost.$id}`)
+      }
+    } catch (error) {
+      console.error(error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: `Failed to ${post ? "update" : "create"} post. Please try again.`,
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
-        return () => subscription.unsubscribe();
-    }, [watch, slugTransform, setValue]);
-
-    return (
-        <form onSubmit={handleSubmit(submit)} className="max-w-4xl mx-auto p-4 bg-white rounded-lg shadow-md">
-            <div className="space-y-6">
-                <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
-                    <input
-                        {...register("title", { required: true })}
-                        type="text"
-                        id="title"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        placeholder="Enter post title"
+  return (
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle>{post ? "Edit Post" : "Create New Post"}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <FormField
+              control={form.control}
+              name="title"
+              rules={{ required: "Title is required" }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter post title" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="slug"
+              rules={{ required: "Slug is required" }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Slug</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="post-slug"
+                      {...field}
+                      onChange={(e) => {
+                        const value = slugTransform(e.target.value)
+                        form.setValue("slug", value)
+                      }}
                     />
-                </div>
-                <div>
-                    <label htmlFor="slug" className="block text-sm font-medium text-gray-700">Slug</label>
-                    <input
-                        {...register("slug", { required: true })}
-                        type="text"
-                        id="slug"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        placeholder="post-slug"
-                        onInput={(e) => {
-                            setValue("slug", slugTransform(e.currentTarget.value), { shouldValidate: true });
-                        }}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="content" className="block text-sm font-medium text-gray-700">Content</label>
-                    <textarea
-                        {...register("content", { required: true })}
-                        id="content"
-                        rows="5"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        placeholder="Write your post content here..."
-                    ></textarea>
-                </div>
-                <div>
-                    <label htmlFor="image" className="block text-sm font-medium text-gray-700">Featured Image</label>
-                    <input
+                  </FormControl>
+                  <FormDescription>
+                    The slug is used in the URL of your post. It is automatically generated from the title, but you can edit it.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="content"
+              rules={{ required: "Content is required" }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Content</FormLabel>
+                  <FormControl>
+                    <EditorContent editor={editor} className="min-h-[200px] border rounded-md p-2" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="image"
+              render={({ field: { onChange, value, ...rest } }) => (
+                <FormItem>
+                  <FormLabel>Featured Image</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center space-x-4">
+                      <Input
                         type="file"
-                        id="image"
-                        accept="image/png, image/jpg, image/jpeg, image/gif"
-                        {...register("image", { required: !post })}
-                        className="mt-1 block w-full text-sm text-gray-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-md file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-indigo-50 file:text-indigo-700
-                        hover:file:bg-indigo-100"
-                    />
-                </div>
-                {post && (
-                    <div className="relative">
-                        <img
+                        accept="image/*"
+                        onChange={(e) => onChange(e.target.files[0])}
+                        {...rest}
+                      />
+                      {post?.featuredImage && (
+                        <div className="relative">
+                          <img
                             src={appwriteService.getFilePreview(post.featuredImage)}
                             alt={post.title}
-                            className="w-full h-64 object-cover rounded-lg"
-                        />
-                        <button
+                            className="w-20 h-20 object-cover rounded-md"
+                          />
+                          <Button
                             type="button"
-                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                            onClick={() => {/* Add logic to remove image */}}
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
+                            variant="destructive"
+                            size="icon"
+                            className="absolute -top-2 -right-2"
+                            onClick={() => form.setValue("image", null)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                )}
-                <div>
-                    <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
-                    <select
-                        {...register("status", { required: true })}
-                        id="status"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    >
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
-                <button
-                    type="submit"
-                    className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                        post ? 'bg-green-600 hover:bg-green-700' : 'bg-indigo-600 hover:bg-indigo-700'
-                    } focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                        post ? 'focus:ring-green-500' : 'focus:ring-indigo-500'
-                    }`}
-                >
-                    {post ? "Update Post" : "Create Post"}
-                </button>
-            </div>
-        </form>
-    );
+                  </FormControl>
+                  <FormDescription>
+                    Upload a featured image for your post. If updating, uploading a new image will replace the existing one.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="status"
+              rules={{ required: "Status is required" }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select post status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </form>
+        </Form>
+      </CardContent>
+      <CardFooter>
+        <Button
+          type="submit"
+          className="w-full"
+          onClick={form.handleSubmit(onSubmit)}
+          disabled={isSubmitting}
+        >
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {post ? "Update Post" : "Create Post"}
+        </Button>
+      </CardFooter>
+    </Card>
+  )
 }
 
