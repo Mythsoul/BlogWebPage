@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import appwriteService from "../appwrite/config"
 import { PostCard } from '../components'
 import { Loader } from 'lucide-react'
-
+import { CarouselDemo } from '../components/TestCard'
+import { Carousel } from '@/components/ui/carousel'
 function Home() {
     const [posts, setPosts] = useState([])
     const [loading, setLoading] = useState(true)
@@ -14,8 +15,8 @@ function Home() {
             }
             setLoading(false)
         })
-    }, [])
-  
+    }, [appwriteService, setPosts])
+   
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen">
@@ -48,6 +49,7 @@ function Home() {
                         <PostCard key={post.$id} {...post} />
                     ))}
                 </div>
+<CarouselDemo /> 
             </div>
         </div>
     )

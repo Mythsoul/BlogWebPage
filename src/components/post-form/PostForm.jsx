@@ -5,7 +5,6 @@ import { useSelector } from "react-redux";
 import { X } from 'lucide-react';
 import appwriteService from "../../appwrite/config";
 
-
 export default function PostForm({ post }) {
     const { register, handleSubmit, watch, setValue, control, getValues } = useForm({
         defaultValues: {
@@ -72,7 +71,7 @@ export default function PostForm({ post }) {
     }, [watch, slugTransform, setValue]);
 
     return (
-        <form onSubmit={handleSubmit(submit)} className="max-w-4xl mx-auto p-4">
+        <form onSubmit={handleSubmit(submit)} className="max-w-4xl mx-auto p-4 bg-white rounded-lg shadow-md">
             <div className="space-y-6">
                 <div>
                     <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>

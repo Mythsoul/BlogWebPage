@@ -19,10 +19,10 @@ function PostCard({ $id, title, featuredImage, author, createdAt }) {
                             <User className="w-4 h-4 mr-1" />
                             <span>{author}</span>
                         </div>
-                        <div className="flex items-center">
+                        {/* <div className="flex items-center">
                             <Calendar className="w-4 h-4 mr-1" />
                             <span>{new Date(createdAt).toLocaleDateString()}</span>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>

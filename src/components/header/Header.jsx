@@ -2,6 +2,7 @@ import React from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate, Link } from 'react-router-dom'
 import { Home, BookOpen, PlusCircle, User, LogOut, Menu } from 'lucide-react'
+import LogoutBtn from './LogoutBtn'
 
 function Header() {
   const authStatus = useSelector((state) => state.auth.status)
@@ -33,7 +34,7 @@ function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between py-4">
           <Link to="/" className="flex items-center space-x-2">
-            <img src="/logo.svg" alt="Logo" className="w-8 h-8" />
+            <img src="./assets/react.svg" alt="Logo" className="w-8 h-8" />
             <span className="text-2xl font-bold text-gray-800">BlogHub</span>
           </Link>
           <nav className="hidden md:flex items-center space-x-4">
@@ -60,10 +61,8 @@ function Header() {
                     <User className="w-4 h-4 mr-2" />
                     Profile
                   </button>
-                  <button className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Log out
-                  </button>
+                  <LogoutBtn />
+                
                 </div>
               </div>
             ) : (
