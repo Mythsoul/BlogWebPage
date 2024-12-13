@@ -10,7 +10,7 @@ export default function Protected({children, authentication = true}) {
      if(authStatus){ {
         console.log(authStatus)
 
-        
+          
      }}
     useEffect(() => {
   
